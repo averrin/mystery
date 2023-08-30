@@ -1,0 +1,88 @@
+{"tags":[
+    {
+        "id": 0,
+        "title": "Addiction",
+        "weight": 5,
+        "mm": 30,
+        "ff": 30
+    },
+    {
+        "id": 1,
+        "title": "Gambling",
+        "weight": 10
+    },
+    {
+        "id": 2,
+        "title": "Hidden knowlege",
+        "weight": 5,
+        "mm": 90,
+        "ff": 90
+    },
+    {
+        "id": 3,
+        "title": "Alcoholism",
+        "weight": 5,
+        "mm": 30,
+        "ff": 30
+    },
+    {
+        "id": 4,
+        "title": "Mental disorder",
+        "weight": 3,
+        "mm": 50,
+        "mf": 50,
+        "fm": 50,
+        "ff": 50
+    },
+    {
+        "id": 5,
+        "title": "Family secret",
+        "weight": 15,
+        "mm": 50,
+        "mf": 50,
+        "fm": 50,
+        "ff": 50
+    },
+    {
+        "id": 6,
+        "title": "Curse",
+        "weight": 5,
+        "mm": 50,
+        "mf": 50,
+        "fm": 50,
+        "ff": 50
+    },
+    {
+        "id": 7,
+        "title": "Disease",
+        "weight": 15,
+        "mm": 70,
+        "mf": 70,
+        "fm": 70,
+        "ff": 70
+    },
+    {
+        "id": 8,
+        "title": "Cheating",
+        "weight": 20,
+        "mm": 30,
+        "ff": 30
+    },
+    {
+        "id": 9,
+        "title": "Murdered",
+        "weight": 5,
+        "alive": false
+    },
+    {
+        "id": 10,
+        "title": "Murderer",
+        "weight": 5
+    },
+    {
+        "id": 11,
+        "title": "Serial killer",
+        "weight": 5,
+        "female": false
+    }
+]}
