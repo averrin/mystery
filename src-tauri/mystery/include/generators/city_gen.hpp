@@ -114,6 +114,13 @@ public:
         {"traits.negative", "traits.negative.json"},
         {"hobby", "hobbies.json"},
         {"street", "streets.json"},
+        {"park", "parks.json"},
+        {"monument", "monuments.json"},
+        {"sport_field", "sport_fields.json"},
+        {"factory", "factories.json"},
+        {"salon", "salons.json"},
+        {"clinic", "clinics.json"},
+        {"corp", "corps.json"},
     };
     for (auto [key, p] : rnds) {
       this->rm->reg(key, r + p);

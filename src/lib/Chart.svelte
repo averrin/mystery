@@ -1,5 +1,5 @@
 <script>
-  import { Chart, ChartWrapper, Card } from "flowbite-svelte";
+  import { Chart, Card } from "flowbite-svelte";
 
   export let data;
 

@@ -98,6 +98,7 @@ mod ffi {
         id: i32,
         name: String,
         street_type: String,
+        landmarks: Vec<i32>,
     }
     #[derive(Serialize, Debug)]
     struct Building {
@@ -110,6 +111,7 @@ mod ffi {
     struct Location {
         id: i32,
         name: String,
+        location_type: String,
         properties: Vec<i32>,
         tags: Vec<i32>,
         phone: i32,

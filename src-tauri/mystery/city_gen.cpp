@@ -282,7 +282,8 @@ void CityGenerator::populateOrgs() {
     this->grpManager->populate("cafe");
   }
 
-  this->grpManager->populate("corp");
+  auto g = this->grpManager->populate("corp");
+  g->name = this->rm->get<std::string>("corp", true);
 
   std::vector<std::pair<std::string, std::string>> stores = {
       {"Grocery store", "shopkeeper"},
@@ -323,7 +324,7 @@ void CityGenerator::populateOrgs() {
                 {"worker", iS(0, 1)},
             },
         .roleRels = {{s.second, {{"worker"}, {"boss", "coworker"}}}},
-        .location_type = "comerical",
+        .location_type = "commerical",
     });
     auto org = this->grpManager->populate(s.first);
     if (!org->roles.empty()) {
@@ -341,11 +342,14 @@ void CityGenerator::populateOrgs() {
     }
   }
 
-  this->grpManager->populate("salon");
+  g = this->grpManager->populate("salon");
+  g->name = this->rm->get<std::string>("salon", true);
   this->grpManager->populate("construction");
-  this->grpManager->populate("clinic");
+  g = this->grpManager->populate("clinic");
+  g->name = this->rm->get<std::string>("clinic", true);
   for (auto n = 0; n < iS(1, 2).get(); n++) {
-    this->grpManager->populate("manufacturer");
+    auto g = this->grpManager->populate("manufacturer");
+    g->name = this->rm->get<std::string>("factory", true);
   }
   this->grpManager->populate("singles");
 

@@ -5,6 +5,8 @@
 #include "../utils.hpp"
 #include <cctype>
 
+using namespace std::ranges;
+
 struct LocationSpec {
   std::string name;
   std::string cat;
@@ -21,7 +23,13 @@ public:
   std::shared_ptr<Container<Building>> buildings;
   std::map<int, std::vector<int>> streetBuildings;
   std::map<int, int> buildingLastApartment;
-  // building types: single-family, apartments, office, commercial, industrial
+  std::map<std::string, std::vector<std::string>> landmarks = {
+      {"downtown", {"park", "monument"}},
+      {"residential-single", {"park", "sport field"}},
+      {"residential-multi", {"park", "sport field"}},
+      {"industrial", {"park"}},
+      {"commerical", {"park", "market square"}},
+  };
 
   LocationGenerator(std::shared_ptr<RManager> _rm) : Container(), rm(_rm) {
     streets = std::make_shared<Container<Street>>();
@@ -61,7 +69,7 @@ public:
     auto max_houses = Random::get<int>(15, 20);
 
     auto apartment = 0;
-    auto _street = streets->items | std::views::filter([&](auto s) {
+    auto _street = streets->items | views::filter([&](auto s) {
                      return s->street_type == street_type &&
                             streetBuildings[s->id].size() < max_houses;
                    });
@@ -69,9 +77,41 @@ public:
     if (_street.empty()) {
       auto fs =
           streets->items |
-          std::views::filter([&](auto s) { return s->street_type == ""; }) |
+          views::filter([&](auto s) { return s->street_type == ""; }) |
           to_vector();
       street = fs.at(Random::get<int>(0, fs.size() - 1));
+
+      for (auto n = 0; n < intSpec{std::pair<int, int>{1, 3}}.get(); n++) {
+        fmt::print(fmt::runtime("landmark for: {}\n"), street_type);
+        auto lms = landmarks.at(street_type);
+        auto landmark = lms.at(Random::get<int>(0, lms.size() - 1));
+        fmt::print(fmt::runtime("landmark: {}\n"), landmark);
+        if (landmark == "park") {
+          landmark = this->rm->get<std::string>("park", true);
+        } else if (landmark == "monument") {
+          landmark = this->rm->get<std::string>("monument", true);
+        } else if (landmark == "sport field") {
+          landmark = this->rm->get<std::string>("sport_field", true);
+        }
+        //else if (landmark == "market square") {
+          // landmark = this->rm->get<std::string>("market_square", true);
+        // }
+        auto loc = std::make_shared<Location>(Location{
+            .name = landmark,
+            .location_type = "landmark",
+        });
+        this->save(loc);
+        street->landmarks.push_back(loc->id);
+      }
+
+      if (Random::get<bool>(0.8)) {
+        auto loc = std::make_shared<Location>(Location{
+            .name = fmt::format(fmt::runtime("Bus stop \"{}\""), std::string(street->name)),
+            .location_type = "bus stop",
+        });
+        this->save(loc);
+        street->landmarks.push_back(loc->id);
+      }
     } else {
       street = (_street | to_vector()).at(0);
     }
@@ -110,6 +150,7 @@ public:
 
     buildingLastApartment[building->id] = apartment;
     auto location = std::make_shared<Location>(Location{
+        .location_type = "building",
         .building = building->id,
     });
     if (apartment > 0) {

@@ -8,14 +8,25 @@
   let street = $cityStore.geo.streets[building.street];
 
   let color = "#eee";
-  if (building.building_type == "residential") {
-    // color = "#f44336";
-  } else if (building.building_type == "commerical") {
-    color = "blue";
-  } else if (building.building_type == "industrial") {
-    color = "yellow";
-  } else if (building.building_type == "other") {
-    color = "green";
+  if (location.location_type == "building") {
+    if (building.building_type == "residential") {
+      // color = "#f44336";
+    } else if (building.building_type == "commerical") {
+      color = "blue";
+    } else if (building.building_type == "industrial") {
+      color = "yellow";
+    } else if (building.building_type == "other") {
+      color = "green";
+    }
+  }
+  if (location.location_type == "landmark") {
+    color = "indigo";
+    building = { building_type: "landmark" };
+  }
+
+  if (location.location_type == "bus stop") {
+    color = "red";
+    building = { building_type: "bus stop" };
   }
   if (location.name == "Empty") {
     color = "dark";
@@ -26,26 +37,28 @@
   <Badge border large={true} {color}>
     <span
       id={`badge-location-${location.id}`}
-      class="flex flex-row gap-2 items-center"
+      class="flex flex-row gap-1 items-center"
     >
       <Icon icon="carbon:location-filled" {color} />
 
       {#if location.name}
-        <span class="text-md">{location.name} | </span>
+        <span class="text-md">{location.name}</span>
       {/if}
-
-      {street.name}
-      <b
-        >{building.number}
-        {#if location.apartment}
-          {#if building.building_type.startsWith("residential")}
-            apt.
-          {:else}
-            room.
+      {#if location.location_type == "building"}
+        {#if location.name} |&nbsp;{/if}
+        {street.name}
+        <b
+          >{building.number}
+          {#if location.apartment}
+            {#if building.building_type.startsWith("residential")}
+              &nbsp;apt.&nbsp;
+            {:else}
+              &nbsp;room.&nbsp;
+            {/if}
+            {location.apartment}
           {/if}
-          {location.apartment}
-        {/if}
-      </b>
+        </b>
+      {/if}
     </span></Badge
   >
   <Tooltip type={"dark"} triggeredBy={`#badge-location-${location.id}`}>

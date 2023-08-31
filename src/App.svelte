@@ -557,21 +557,30 @@
 
     <Tabs>
       <TabItem open title="Map">
-        {#each city.geo.streets.filter(s => s.street_type) as street}
+        {#each city.geo.streets.filter((s) => s.street_type) as street}
           <div>
-            <span class="font-bold text-xl">{street.name} [{street.street_type}]</span>
+            <span class="font-bold text-xl"
+              >{street.name} [{street.street_type}]</span
+            >
+
+            <div class="mr-6 flex flex-row gap-2 flex-wrap items-center">
+              {#each street.landmarks.map((l) => city.geo.locations[l]) as location}
+                <Location {location} />
+              {/each}
+            </div>
+
             <div class="mr-6 flex flex-col gap-1">
               {#each city.geo.buildings.filter((b) => b.street == street.id) as building}
-                  <div class="mr-6 flex flex-row gap-2 flex-wrap items-center">
-                    {#each city.geo.locations.filter((l) => l.building == building.id) as location}
-                        <Location {location} />
-                    {/each}
-                  </div>
+                <div class="mr-6 flex flex-row gap-2 flex-wrap items-center">
+                  {#each city.geo.locations.filter((l) => l.building == building.id && l.location_type == "building") as location}
+                    <Location {location} />
+                  {/each}
+                </div>
               {/each}
             </div>
           </div>
         {/each}
-        {#each city.geo.streets.filter(s => s.street_type) as street}
+        {#each city.geo.streets.filter((s) => s.street_type) as street}
           <div>
             <span class="font-bold text-xl">{street.name} [EMPTY]</span>
           </div>
