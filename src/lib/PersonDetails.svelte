@@ -17,7 +17,10 @@
     Badge,
     Accordion,
     AccordionItem,
+    Spinner,
+    GradientButton,
   } from "flowbite-svelte";
+  import { askGPT } from "../gpt";
 
   import { createEventDispatcher } from "svelte";
   import Relation from "./Relation.svelte";
@@ -80,21 +83,93 @@
   function zoomPerson(p) {
     dispatch("zoom", p);
   }
+
+  let waitForGPT = false;
+  async function genDescription() {
+    waitForGPT = true;
+    let person_detailed = { ...person };
+    delete person_detailed.id;
+    delete person_detailed.knowledge;
+    delete person_detailed.alias;
+    delete person_detailed.birth;
+    if (!person_detailed.dead) {
+      delete person_detailed.death;
+    }
+    person_detailed.roles = city.roles.filter((r) =>
+      r.members.includes(person.id)
+    );
+    person_detailed.roles.forEach((r) => {
+      r.group = city.groups[r.group_id];
+    });
+    person.children_count = getPersonsSource("parent", person).length;
+    person.status = "single";
+    if (getPersonsSymmetric("widow", person, true).length > 0) {
+      person.status = "widowed";
+    }
+    if (getPersonsSymmetric("divorce", person, true).length > 0) {
+      person.status = "divorced";
+    }
+    if (getPersonsSymmetric("marriage", person, true).length > 0) {
+      person.status = "married";
+    }
+    console.log(person_detailed);
+    let desc = await askGPT(
+      JSON.stringify({
+        goal: "brief literature person description",
+        assumptions: {
+          wealth: {
+            "<=0": "poor",
+            "<=2": "lower class",
+            "<=3": "middle class",
+            ">=4": "upper class",
+          },
+          reputation: {
+            "<=1": "bad",
+            "<=2": "neutral",
+            "<=4": "good",
+            ">=5": "famous",
+          },
+        },
+        instructions: [
+          "tags are private traits, but can be rumored",
+          "use max 60% properties",
+          "do not show personality.general",
+          "show rumors if reputation < 1 or > 5",
+          "max 3 sentences for appearance",
+        ],
+        person: person_detailed,
+      })
+    );
+    console.log(desc);
+    person = { ...person, description: desc };
+    city.persons[person.id] = person;
+  }
 </script>
 
-<div class="mt-1">
+<div class="mt-8">
+  <div class="my-2 flex flex-row items-center gap-2">
+    <Person {person} large={true} on:click={(e) => selectPerson(e.detail)} />
+    <Button size="xs" outline on:click={(_) => zoomPerson(person)}>zoom</Button>
+    <Button size="xs" outline on:click={(_) => selectPerson(person)}
+      >select</Button
+    >
+  </div>
+  <div class="font-bold text-xl">Description:</div>
+  <div class="">
+    {#if person.description}
+      <div class="text-md">{person.description}</div>
+    {:else}
+      <GradientButton color="purpleToPink" size="xs" on:click={genDescription}>
+        {#if waitForGPT}
+          <Spinner color="green" size="5" />
+        {:else}
+          Ask GPT
+        {/if}
+      </GradientButton>
+    {/if}
+  </div>
   <Table striped={true}>
-    <TableHead>
-      <TableHeadCell colspan="2"
-        ><Person {person} on:click={(e) => selectPerson(e.detail)} />
-        <Button size="xs" color="dark" on:click={(_) => zoomPerson(person)}
-          >zoom</Button
-        >
-        <Button size="xs" color="dark" on:click={(_) => selectPerson(person)}
-          >select</Button
-        >
-      </TableHeadCell>
-    </TableHead>
+    <TableHead />
     <TableBody>
       <TableBodyRow>
         <TableBodyCell>Lifespan</TableBodyCell>
@@ -156,7 +231,7 @@
         </TableBodyCell>
       </TableBodyRow>
       <TableBodyRow>
-        <TableBodyCell>Knoweledge</TableBodyCell>
+        <TableBodyCell>Knowledge</TableBodyCell>
         <TableBodyCell>
           <div class="flex flex-wrap gap-2 items-center">
             {#each person.knowledge as k}

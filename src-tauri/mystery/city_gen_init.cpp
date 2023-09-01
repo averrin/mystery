@@ -566,6 +566,12 @@ void CityGenerator::initRelations() {
   });
 
   this->relManager->reg(RelationType{
+      .name = "neighbor",
+      .cat = "person",
+      .symmetric = true,
+  });
+
+  this->relManager->reg(RelationType{
       .name = "boss",
       .cat = "person",
       .symmetric = false,

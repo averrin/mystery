@@ -84,8 +84,8 @@ public:
           this->gen->property((*p)->id, "reputation",
                               grpType.reputation[rc.first] + r);
         } else {
-          fmt::print(fmt::runtime("!!! cannot find person {} for group {}\n"),
-                     spec, name);
+          // fmt::print(fmt::runtime("!!! cannot find person {} for group {}\n"),
+          //            spec, name);
           break;
         }
       }

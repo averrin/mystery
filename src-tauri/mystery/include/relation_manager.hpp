@@ -1,6 +1,6 @@
 #pragma once
-#include "generator.hpp"
 #include "../../target/cxxbridge/src/common.rs.h"
+#include "generator.hpp"
 #include "utils.hpp"
 
 typedef std::function<void(std::shared_ptr<Relation>)> relationCb;
@@ -12,26 +12,30 @@ struct RelationType {
 };
 
 class RelationManager : public Container<Relation> {
+  std::map<int, std::vector<std::shared_ptr<Relation>>> relMap;
+
 public:
   std::map<std::string, RelationType> relTypes;
 
   auto getRelations(int id) {
-    return this->items | views::filter([id](std::shared_ptr<Relation> r) {
-             return r->target == id || r->source == id;
-           });
+    if (!relMap.contains(id)) return std::vector<std::shared_ptr<Relation>>();
+    return this->relMap.at(id);
   }
 
   auto getRelations(std::string relTypeName, int id, bool only_active = false) {
     if (this->relTypes.find(relTypeName) == this->relTypes.end()) {
-      throw std::runtime_error(fmt::format("undefined relation: {}", relTypeName));
+      throw std::runtime_error(
+          fmt::format("undefined relation: {}", relTypeName));
     }
     return this->getRelations(id) |
            views::filter([&](std::shared_ptr<Relation> r) {
              return r->rel_type == relTypeName && (!only_active || r->active);
-           }) | to_vector();
+           }) |
+           to_vector();
   }
 
-  auto getSources(std::string relTypeName, int id, bool recursive = false, bool only_active = false) {
+  auto getSources(std::string relTypeName, int id, bool recursive = false,
+                  bool only_active = false) {
     auto rels = this->getRelations(relTypeName, id, only_active);
     auto items = rels | views::transform([](std::shared_ptr<Relation> r) {
                    return r->source;
@@ -49,7 +53,8 @@ public:
     return items;
   }
 
-  auto getTargets(std::string relTypeName, int id, bool recursive = false, bool only_active = false) {
+  auto getTargets(std::string relTypeName, int id, bool recursive = false,
+                  bool only_active = false) {
     auto rels = this->getRelations(relTypeName, id, only_active);
     auto items = rels | views::transform([](std::shared_ptr<Relation> r) {
                    return r->target;
@@ -68,12 +73,15 @@ public:
   }
 
   auto getSymmetric(std::string relTypeName, int id, bool only_active = false) {
-    auto s = this->getSources(relTypeName, id, false, only_active) | to_vector();
-    auto t = this->getTargets(relTypeName, id, false, only_active) | to_vector();
+    auto s =
+        this->getSources(relTypeName, id, false, only_active) | to_vector();
+    auto t =
+        this->getTargets(relTypeName, id, false, only_active) | to_vector();
     std::vector<int> out;
     out.reserve(s.size() + t.size());
     std::ranges::merge(s, t, std::back_inserter(out));
-    return out | views::filter([id](int i) { return i != id; }) | unique() | to_vector();
+    return out | views::filter([id](int i) { return i != id; }) | unique() |
+           to_vector();
   }
 
   void reg(RelationType relType) { this->relTypes[relType.name] = relType; }
@@ -85,6 +93,13 @@ public:
     }
     auto relType = this->relTypes[relTypeName];
 
+    if (!relMap.contains(source)) {
+      relMap[source] = std::vector<std::shared_ptr<Relation>>();
+    }
+    if (!relMap.contains(target)) {
+      relMap[target] = std::vector<std::shared_ptr<Relation>>();
+    }
+
     auto rel = std::make_shared<Relation>(Relation{
         .source = source,
         .target = target,
@@ -93,6 +108,10 @@ public:
         .symmetric = relType.symmetric,
         .active = true,
     });
+
+    relMap[source].push_back(rel);
+    relMap[target].push_back(rel);
+
     if (relType.callback) {
       relType.callback(rel);
     }

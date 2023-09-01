@@ -32,20 +32,17 @@ City CityGenerator::get() {
   this->populateHouseholds();
 
   std::vector<std::shared_ptr<Group>> groups;
+  std::vector<std::shared_ptr<Group>> households;
 
   std::ranges::copy(this->grpManager->items, std::back_inserter(groups));
-  std::cerr << "DEBUGPRINT[4]: city_gen.cpp:36: this->grpManager->items.size()="
-            << this->grpManager->items.size() << std::endl;
-  std::cerr << "DEBUGPRINT[3]: city_gen.cpp:36: groups=" << groups.size()
-            << std::endl;
   Random::shuffle(groups);
   for (auto g : groups) {
-    std::cerr << "DEBUGPRINT[2]: city_gen.cpp:38: g=" << g->name << std::endl;
     if (g->group_type != "" && !g->roles.empty()) {
       auto gt = this->grpManager->grpTypes[std::string(g->group_type)];
       auto l_type = gt.location_type;
       auto l_multi = gt.location_multi;
       if (g->group_type == "household") {
+        households.push_back(g);
         auto wealth = -999;
         for (auto m : this->grpManager->getMembers(g->id)) {
           auto _w = this->gen->property(m, "wealth");
@@ -77,6 +74,22 @@ City CityGenerator::get() {
         }
       }
     }
+  }
+
+  std::map<int, std::vector<int>> streetResidents;
+  for (auto h : households) {
+    auto m = this->grpManager->getMembers(h->id);
+    if (m.empty())
+      continue;
+    auto s = locationGen->buildings->get(locationGen->get(h->location)->building)->street;
+    if (!streetResidents.contains(s)) {
+      streetResidents[s] = m;
+    } else {
+      streetResidents[s].insert(streetResidents[s].end(), m.begin(), m.end());
+    }
+  }
+  for (auto [sid, residents] : streetResidents) {
+    relManager->add("neighbor", residents);
   }
 
   fmt::print("Making friends\n");
@@ -605,7 +618,6 @@ CityGenerator::makeNuclearFamily(std::shared_ptr<Person> a) {
       not_married = true;
     }
   } else {
-    fmt::print(fmt::runtime("{} not married with {}\n"), *a, *b);
     auto m = this->relManager->add("affair", a->id, b->id);
     m->active = false;
   }
@@ -652,8 +664,6 @@ CityGenerator::makeNuclearFamily(std::shared_ptr<Person> a) {
 
               this->gen->propertyMod(c->id, "reputation", trait.reputation);
               this->gen->propertyMod(c->id, "wealth", trait.wealth);
-              fmt::print(fmt::runtime("{} got {} from {}\n"), *c,
-                         std::string(tag.name), *parent);
             }
           }
           both++;

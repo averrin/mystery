@@ -56,6 +56,7 @@
     clubmate: false,
     suspect: false,
     parishioner: false,
+    neighbor: false,
   };
   let show_dead = true;
   let show_linked = true;
@@ -130,6 +131,7 @@
     rival: { type: "line", size: 1, color: "#ff3333", weight: 0.05 },
     boss: { type: "arrow", size: 4, color: "#8844aa", weight: 0.0 },
     suspect: { type: "arrow", size: 4, color: "#ff3333", weight: 0.0 },
+    neighbor: { type: "line", size: 1, color: "#6666aa", weight: 0.0 },
   };
 
   let renderer;

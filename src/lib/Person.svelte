@@ -4,6 +4,7 @@
   import { Tooltip, Button } from "flowbite-svelte";
   import Icon from "@iconify/svelte";
   export let person;
+  export let large = false;
 
   function stringToColor(str: string) {
     let hash = 0;

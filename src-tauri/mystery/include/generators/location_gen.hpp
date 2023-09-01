@@ -43,6 +43,10 @@ public:
     }
   }
 
+  std::shared_ptr<Location> get(int id) {
+    return Container::get(id);
+  }
+
   std::shared_ptr<Location> get(std::string type, bool multi) {
     if (Random::get<bool>(0.1)) {
       auto e = this->get(type, multi);
@@ -82,10 +86,8 @@ public:
       street = fs.at(Random::get<int>(0, fs.size() - 1));
 
       for (auto n = 0; n < intSpec{std::pair<int, int>{1, 3}}.get(); n++) {
-        fmt::print(fmt::runtime("landmark for: {}\n"), street_type);
         auto lms = landmarks.at(street_type);
         auto landmark = lms.at(Random::get<int>(0, lms.size() - 1));
-        fmt::print(fmt::runtime("landmark: {}\n"), landmark);
         if (landmark == "park") {
           landmark = this->rm->get<std::string>("park", true);
         } else if (landmark == "monument") {
