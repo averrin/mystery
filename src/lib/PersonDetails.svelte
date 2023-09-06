@@ -1,11 +1,11 @@
 <script lang="ts">
   import Person from "./Person.svelte";
-  import GroupName from "./GroupName.svelte";
+  import Location from "./Location.svelte";
   import PersonList from "./PersonList.svelte";
   import PropertyList from "./PropertyList.svelte";
   import Entity from "./Entity.svelte";
-  import Icon from "@iconify/svelte";
   import Role from "./Role.svelte";
+  import Chip from "./Chip.svelte";
   import {
     Table,
     TableBody,
@@ -20,7 +20,7 @@
     Spinner,
     GradientButton,
   } from "flowbite-svelte";
-  import { askGPT } from "../gpt";
+  import { askGPT, personDescription } from "../gpt";
 
   import { createEventDispatcher } from "svelte";
   import Relation from "./Relation.svelte";
@@ -28,6 +28,14 @@
 
   export let person;
   export let city;
+
+  let household = city.groups.find(
+    (g) =>
+      g.roles.length > 0 &&
+      city.roles[g.roles[0]]?.members?.includes(person.id) &&
+      g.group_type == "household"
+  );
+  let work = city.groups[city.roles[person.occupation.role_id].group_id];
 
   function formatDate(d) {
     return `${String(d.day).padStart(2, "0")}.${String(d.month).padStart(
@@ -99,47 +107,48 @@
       r.members.includes(person.id)
     );
     person_detailed.roles.forEach((r) => {
-      r.group = city.groups[r.group_id];
+      r.group = city.groups[r.group_id].name;
     });
-    person.children_count = getPersonsSource("parent", person).length;
-    person.status = "single";
+    person_detailed.children_count = getPersonsSource("parent", person).length;
+    person_detailed.status = "single";
     if (getPersonsSymmetric("widow", person, true).length > 0) {
-      person.status = "widowed";
+      person_detailed.status = "widowed";
     }
     if (getPersonsSymmetric("divorce", person, true).length > 0) {
-      person.status = "divorced";
+      person_detailed.status = "divorced";
     }
     if (getPersonsSymmetric("marriage", person, true).length > 0) {
-      person.status = "married";
+      person_detailed.status = "married";
     }
+    let wealth = person.properties.find((p) => p.name == "wealth").n;
+    person_detailed.wealth = "upper class";
+    if (wealth <= 4) {
+      person_detailed.wealth = "middle class";
+    }
+    if (wealth <= 2) {
+      person_detailed.wealth = "lower class";
+    }
+    if (wealth <= 0) {
+      person_detailed.wealth = "poor";
+    }
+
+    let reputation = person.properties.find((p) => p.name == "reputation").n;
+    person_detailed.reputation = "famous";
+    if (reputation <= 4) {
+      person_detailed.reputation = "good";
+    }
+    if (reputation <= 2) {
+      person_detailed.reputation = "neutral";
+    }
+    if (reputation <= 0) {
+      person_detailed.reputation = "bad";
+    }
+    if (reputation <= -2) {
+      person_detailed.reputation = "horrible";
+    }
+
     console.log(person_detailed);
-    let desc = await askGPT(
-      JSON.stringify({
-        goal: "brief literature person description",
-        assumptions: {
-          wealth: {
-            "<=0": "poor",
-            "<=2": "lower class",
-            "<=3": "middle class",
-            ">=4": "upper class",
-          },
-          reputation: {
-            "<=1": "bad",
-            "<=2": "neutral",
-            "<=4": "good",
-            ">=5": "famous",
-          },
-        },
-        instructions: [
-          "tags are private traits, but can be rumored",
-          "use max 60% properties",
-          "do not show personality.general",
-          "show rumors if reputation < 1 or > 5",
-          "max 3 sentences for appearance",
-        ],
-        person: person_detailed,
-      })
-    );
+    let desc = await askGPT(personDescription(person_detailed));
     console.log(desc);
     person = { ...person, description: desc };
     city.persons[person.id] = person;
@@ -191,6 +200,26 @@
         </TableBodyRow>
       {/if}
       <TableBodyRow>
+        <TableBodyCell>Address</TableBodyCell>
+        <TableBodyCell>
+          <Location location={city.geo.locations[household?.location]} />
+        </TableBodyCell>
+      </TableBodyRow>
+      <TableBodyRow>
+        <TableBodyCell>Phones</TableBodyCell>
+        <TableBodyCell>
+          <div class="flex flex-row gap-2 flex-wrap items-center">
+            <b>Home:</b>
+            {city.geo.locations[household?.location].phone}
+            {#if work}
+              <span>|</span>
+              <b>Work:</b>
+              {city.geo.locations[work?.location].phone || "N/A"}
+            {/if}
+          </div>
+        </TableBodyCell>
+      </TableBodyRow>
+      <TableBodyRow>
         <TableBodyCell>Roles</TableBodyCell>
         <TableBodyCell>
           <div class="flex flex-wrap gap-2 items-center">
@@ -211,21 +240,17 @@
         <TableBodyCell>
           <div class="flex flex-wrap gap-2 items-center">
             {#each person.tags as tag}
-              <Badge
+              <Chip
+                icon="mdi-tag"
                 color={{
-                  positive: "green",
-                  neutral: "yellow",
-                  negative: "red",
-                  trait: "dark",
+                  positive: "#99bbaa",
+                  neutral: "#cccaaa",
+                  negative: "#eeaaaa",
+                  trait: "#99aaee",
                 }[tag.cat]}
-                large
-                border
               >
-                <span class="flex flex-row gap-1 items-center">
-                  <Icon icon="mdi:tag" />
-                  {tag.name}
-                </span>
-              </Badge>
+                {tag.name}
+              </Chip>
             {/each}
           </div>
         </TableBodyCell>

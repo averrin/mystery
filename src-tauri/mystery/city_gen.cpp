@@ -70,7 +70,8 @@ City CityGenerator::get() {
         for (auto role : roles) {
           auto l = this->locationGen->get(l_type, l_multi);
           g->location = l->id;
-          l->name = fmt::format(fmt::runtime("{}'s {}"), std::string(g->name), std::string(role->name));
+          l->name = fmt::format(fmt::runtime("{}'s {}"), std::string(g->name),
+                                std::string(role->name));
         }
       }
     }
@@ -81,7 +82,9 @@ City CityGenerator::get() {
     auto m = this->grpManager->getMembers(h->id);
     if (m.empty())
       continue;
-    auto s = locationGen->buildings->get(locationGen->get(h->location)->building)->street;
+    auto s =
+        locationGen->buildings->get(locationGen->get(h->location)->building)
+            ->street;
     if (!streetResidents.contains(s)) {
       streetResidents[s] = m;
     } else {
@@ -142,6 +145,13 @@ City CityGenerator::get() {
     this->makeAffair(p);
   }
 
+  for (auto p : this->gen->items) {
+    if (p->age >= 18 && !this->gen->property(p->id, "hobby")) {
+      this->gen->property(p->id, "hobby",
+                          this->rm->get<std::string>("hobby.individual", true));
+    }
+  }
+
   fmt::print("Making classmates\n");
   std::vector<intSpec> ages = {
       intSpec{std::pair<int, int>{18, 25}},
@@ -174,7 +184,10 @@ City CityGenerator::get() {
 
   auto city = City{
       .seed = rm->seed(),
-      .name = "New Tokio",
+      .name = rm->get<std::string>("city.name", true),
+      .current_date = *this->rm->getGen<DateGenerator>("date")->get(DatesSpec{
+          .year = intSpec{rm->currentYear},
+      }),
   };
 
   // std::copy(gen->items.begin(), gen->items.end(),
@@ -255,7 +268,7 @@ void CityGenerator::populateHouseholds() {
       }
     }
 
-    auto g = this->grpManager->add(hh_name, "household", "member",
+    auto g = this->grpManager->add(hh_name, "household", "resident",
                                    hh | std::views::filter([&](int pid) {
                                      return !this->gen->get(pid)->dead;
                                    }) | to_vector());
@@ -270,7 +283,12 @@ void CityGenerator::populateOrgs() {
   auto members = this->grpManager->getMembers(church->id);
   this->relManager->add("parishioner", members);
   for (auto m : members) {
-    this->gen->get(m)->tags.push_back(Tag{"Christian", "neutral"});
+    auto p = this->gen->get(m);
+    if (std::ranges::find_if(p->tags, [&](Tag t) {
+          return t.name == "Christian";
+        }) == p->tags.end()) {
+      p->tags.push_back(Tag{"Christian", "neutral"});
+    }
   }
 
   for (auto n = 0; n < iS(1, 3).get(); n++) {
@@ -337,7 +355,7 @@ void CityGenerator::populateOrgs() {
                 {"worker", iS(0, 1)},
             },
         .roleRels = {{s.second, {{"worker"}, {"boss", "coworker"}}}},
-        .location_type = "commerical",
+        .location_type = "commercial",
     });
     auto org = this->grpManager->populate(s.first);
     if (!org->roles.empty()) {

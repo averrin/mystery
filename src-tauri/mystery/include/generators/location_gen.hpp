@@ -28,10 +28,15 @@ public:
       {"residential-single", {"park", "sport field"}},
       {"residential-multi", {"park", "sport field"}},
       {"industrial", {"park"}},
-      {"commerical", {"park", "market square"}},
+      {"commercial", {"park", "market square"}},
   };
 
+  int rootPhoneCode;
+  std::map<int, std::pair<int, int>> streetPhones;
+
   LocationGenerator(std::shared_ptr<RManager> _rm) : Container(), rm(_rm) {
+    rootPhoneCode = Random::get<int>(100, 999);
+    auto sc = Random::get<int>(100, 700);
     streets = std::make_shared<Container<Street>>();
     buildings = std::make_shared<Container<Building>>();
     for (auto n = 0; n < intSpec{std::pair<int, int>{20, 30}}.get(); n++) {
@@ -39,13 +44,14 @@ public:
           .name = this->rm->get<std::string>("street", true),
           .street_type = "",
       });
-      streets->save(street);
+      auto sid = streets->save(street);
+      sc = sc + Random::get<int>(1, 5);
+      streetPhones[sid] =
+          std::pair<int, int>{sc, 1000 + Random::get<int>(1, 500)};
     }
   }
 
-  std::shared_ptr<Location> get(int id) {
-    return Container::get(id);
-  }
+  std::shared_ptr<Location> get(int id) { return Container::get(id); }
 
   std::shared_ptr<Location> get(std::string type, bool multi) {
     if (Random::get<bool>(0.1)) {
@@ -61,7 +67,7 @@ public:
     }
 
     auto street_type = type;
-    if (type == "office" || type == "commerical") {
+    if (type == "office" || type == "commercial") {
       street_type = "downtown";
     }
     if (type == "other") {
@@ -79,10 +85,9 @@ public:
                    });
     std::shared_ptr<Street> street;
     if (_street.empty()) {
-      auto fs =
-          streets->items |
-          views::filter([&](auto s) { return s->street_type == ""; }) |
-          to_vector();
+      auto fs = streets->items |
+                views::filter([&](auto s) { return s->street_type == ""; }) |
+                to_vector();
       street = fs.at(Random::get<int>(0, fs.size() - 1));
 
       for (auto n = 0; n < intSpec{std::pair<int, int>{1, 3}}.get(); n++) {
@@ -95,8 +100,8 @@ public:
         } else if (landmark == "sport field") {
           landmark = this->rm->get<std::string>("sport_field", true);
         }
-        //else if (landmark == "market square") {
-          // landmark = this->rm->get<std::string>("market_square", true);
+        // else if (landmark == "market square") {
+        //  landmark = this->rm->get<std::string>("market_square", true);
         // }
         auto loc = std::make_shared<Location>(Location{
             .name = landmark,
@@ -108,7 +113,8 @@ public:
 
       if (Random::get<bool>(0.8)) {
         auto loc = std::make_shared<Location>(Location{
-            .name = fmt::format(fmt::runtime("Bus stop \"{}\""), std::string(street->name)),
+            .name = fmt::format(fmt::runtime("Bus stop \"{}\""),
+                                std::string(street->name)),
             .location_type = "bus stop",
         });
         this->save(loc);
@@ -118,6 +124,10 @@ public:
       street = (_street | to_vector()).at(0);
     }
     street->street_type = street_type;
+    auto bPhone = streetPhones[street->id].second + Random::get<int>(1, 10);
+    streetPhones[street->id].second = bPhone;
+    auto phone = fmt::format("({}) {}-{}", rootPhoneCode,
+                             streetPhones[street->id].first, bPhone);
     auto addr_count = streetBuildings[street->id].size();
     std::shared_ptr<Building> building;
     if (!multi) {
@@ -154,6 +164,7 @@ public:
     auto location = std::make_shared<Location>(Location{
         .location_type = "building",
         .building = building->id,
+        .phone = phone,
     });
     if (apartment > 0) {
       location->apartment = apartment;

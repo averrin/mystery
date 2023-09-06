@@ -88,12 +88,6 @@ mod ffi {
     }
 
     #[derive(Serialize, Debug)]
-    struct Phone {
-        id: i32,
-        number: String,
-        persons: Vec<i32>,
-    }
-    #[derive(Serialize, Debug)]
     struct Street {
         id: i32,
         name: String,
@@ -114,9 +108,9 @@ mod ffi {
         location_type: String,
         properties: Vec<i32>,
         tags: Vec<i32>,
-        phone: i32,
         building: i32,
         apartment: i32,
+        phone: String,
     }
     #[derive(Serialize, Debug)]
     struct Event {
@@ -140,7 +134,6 @@ mod ffi {
     #[derive(Serialize, Debug)]
     struct Geo {
         locations: Vec<Location>,
-        phones: Vec<Phone>,
         buildings: Vec<Building>,
         streets: Vec<Street>,
     }
@@ -156,5 +149,6 @@ mod ffi {
         mystery: Mystery,
         events: Vec<Event>,
         geo: Geo,
+        current_date: Dates,
     }
 }

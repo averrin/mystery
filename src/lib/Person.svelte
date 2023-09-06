@@ -3,6 +3,7 @@
   import { createEventDispatcher } from "svelte";
   import { Tooltip, Button } from "flowbite-svelte";
   import Icon from "@iconify/svelte";
+  import Chip from "./Chip.svelte";
   export let person;
   export let large = false;
 
@@ -31,9 +32,10 @@
     return s;
   }
 
-  let color = person.male ? "blue" : "pink";
+  let color = person.male ? "#aaaaff" : "#eeaabb";
+  let bgColor = "#232323";
   if (person.dead) {
-    color = "dark";
+    color = "#888";
   }
 
   let dispatch = createEventDispatcher();
@@ -47,18 +49,17 @@
   on:click={(e) => click(e, person)}
   class="cursor-pointer"
 >
-  <Badge border large={true} {color}>
-    <span class="flex flex-row gap-2 items-center">
-      <Icon
-        icon="fluent:person-48-filled"
-        color={stringToColor(person.name.last_name)}
-      />
-      {formatPerson(person)}
-      {#if !person.local}
-        <Icon icon="mingcute:car-fill" />
-      {/if}
-    </span>
-  </Badge>
+  <Chip
+    icon="fluent:person-48-filled"
+    {color}
+    iconColor={stringToColor(person.name.last_name)}
+    {bgColor}
+  >
+    {formatPerson(person)}
+    {#if !person.local}
+      <Icon icon="mingcute:car-fill" />
+    {/if}
+  </Chip>
 </span>
 <Tooltip type={"dark"} triggeredBy={`#badge-person-${person.id}`}>
   ID: {person.id}

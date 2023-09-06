@@ -478,6 +478,10 @@
     renderer.refresh();
     // initGraph();
   }
+
+  function formatDate(date) {
+    return `${date.day}.${date.month}.${date.year}`;
+  }
 </script>
 
 <div id="sigma-container">
@@ -487,6 +491,7 @@
         <Spinner color="blue" size={10} />
       </div>
     {:else}
+      <div class="text-xl font-bold">{city.name} @ {formatDate(city.current_date)}</div>
       <ButtonGroup>
         <InputAddon>
           <Checkbox bind:checked={customSeed} />
@@ -560,12 +565,12 @@
     <Tabs>
       <TabItem open title="Map">
         {#each city.geo.streets.filter((s) => s.street_type) as street}
-          <div>
-            <span class="font-bold text-xl"
-              >{street.name} [{street.street_type}]</span
-            >
+          <div class="my-2">
+            <div class="font-bold text-xl my-2">
+              {street.name} [{street.street_type}]
+            </div>
 
-            <div class="mr-6 flex flex-row gap-2 flex-wrap items-center">
+            <div class="mr-6 flex flex-row gap-2 flex-wrap items-center mb-2">
               {#each street.landmarks.map((l) => city.geo.locations[l]) as location}
                 <Location {location} />
               {/each}

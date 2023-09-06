@@ -12,9 +12,10 @@ std::shared_ptr<Dates> DateGenerator::get(DatesSpec spec) {
   } else if (spec.age.value) {
     d->year = this->rm->currentYear - spec.age.get();
   } else {
-    d->year = spec.year.get_or(intSpec{std::pair{this->rm->currentYear - 100, this->rm->currentYear}});
+    d->year = spec.year.get_or(
+        intSpec{std::pair{this->rm->currentYear - 100, this->rm->currentYear}});
   }
-  if(d->year < 1900 || d->year > this->rm->currentYear) {
+  if (d->year < 1850 || d->year > this->rm->currentYear) {
     throw std::runtime_error("broken year");
   }
   return this->get(this->save(d));
@@ -22,4 +23,3 @@ std::shared_ptr<Dates> DateGenerator::get(DatesSpec spec) {
 
 std::optional<std::shared_ptr<Dates>> DateGenerator::find(DatesSpec) {}
 std::vector<std::shared_ptr<Dates>> DateGenerator::findAll(DatesSpec) {}
-

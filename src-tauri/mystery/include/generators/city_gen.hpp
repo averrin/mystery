@@ -9,10 +9,12 @@
 #include "../specs/person_spec.hpp"
 #include "../utils.hpp"
 #include "./date_gen.hpp"
-#include "./name_gen.hpp"
 #include "./location_gen.hpp"
+#include "./name_gen.hpp"
 #include "./person_gen.hpp"
 
+#include <filesystem>
+#include <iostream>
 #include <memory>
 
 class TraitSpec {
@@ -90,40 +92,11 @@ public:
     auto r = std::string(root) + "/resources/";
     this->rm = std::make_shared<RManager>(db);
     this->rm->seed(seed);
-    this->rm->currentYear = 2023;
-    // L.info("Mystery init: {}", rm->seed());
-    std::map<std::string, std::string> rnds = {
-        {"last_name", "last_names.json"},
-        {"male_name", "names_male.json"},
-        {"female_name", "names_female.json"},
-        {"eyes.general", "eyes.general.json"},
-        {"eyes.color", "eyes.color.json"},
-        {"skin.general", "skin.general.json"},
-        {"skin.color", "skin.color.json"},
-        {"face.structure", "face.structure.json"},
-        {"face.nose", "face.nose.json"},
-        {"face.mouth", "face.mouth.json"},
-        {"face.hair", "face.hair.json"},
-        {"hair.general", "hair.general.json"},
-        {"hair.color", "hair.color.json"},
-        {"body.type", "body.type.json"},
-        {"hands", "hands.json"},
-        {"personality", "personality.json"},
-        {"traits.positive", "traits.positive.json"},
-        {"traits.neutral", "traits.neutral.json"},
-        {"traits.negative", "traits.negative.json"},
-        {"hobby", "hobbies.json"},
-        {"street", "streets.json"},
-        {"park", "parks.json"},
-        {"monument", "monuments.json"},
-        {"sport_field", "sport_fields.json"},
-        {"factory", "factories.json"},
-        {"salon", "salons.json"},
-        {"clinic", "clinics.json"},
-        {"corp", "corps.json"},
-    };
-    for (auto [key, p] : rnds) {
-      this->rm->reg(key, r + p);
+    this->rm->currentYear = 1983;
+    for (const auto &entry : std::filesystem::directory_iterator(r)) {
+      if (entry.path().extension() == ".json") {
+        this->rm->reg(entry.path().stem(), entry.path());
+      }
     }
 
     this->gen = this->rm->reg<PersonGenerator>("person");

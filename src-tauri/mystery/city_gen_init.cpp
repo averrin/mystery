@@ -590,7 +590,7 @@ void CityGenerator::initOrgs() {
       .cat = "person",
       .callback = [this](std::shared_ptr<Group> group,
                          std::shared_ptr<GroupRole> role) {
-        if (role->name == "member") {
+        if (role->name == "resident") {
           this->relManager->add("housemate", role->members | to_vector());
         }
       }});
@@ -848,7 +848,7 @@ void CityGenerator::initOrgs() {
               {"doctor", 3},
               {"nurse", 1},
           },
-      .location_type = "commerical",
+      .location_type = "commercial",
       .location_multi = true,
   });
 
@@ -934,7 +934,7 @@ void CityGenerator::initOrgs() {
               {"owner", 2},
               {"specialist", 2},
           },
-      .location_type = "commerical",
+      .location_type = "commercial",
       .location_multi = true,
   });
 
@@ -987,7 +987,7 @@ void CityGenerator::initOrgs() {
               {"chief", 3},
               {"waiter", 1},
           },
-      .location_type = "commerical",
+      .location_type = "commercial",
   });
 
   this->grpManager->reg(GroupType{
@@ -1363,5 +1363,5 @@ void CityGenerator::initOrgs() {
           {
               {"president", 1},
           },
-  });
+      });
 }

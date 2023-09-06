@@ -1,9 +1,7 @@
 <script>
-  import Icon from "@iconify/svelte";
-  import {
-    Tooltip,
-    Badge,
-  } from "flowbite-svelte";
+  import { Tooltip, Badge } from "flowbite-svelte";
+
+  import Chip from "./Chip.svelte";
   export let group;
   import cityStore from "../stores";
 
@@ -24,15 +22,11 @@
 
 {#if group}
   {@const roles = group.roles.map((r) => $cityStore.roles[r])}
-  <Badge border large={true} color="dark">
-    <span
-      id={`badge-group-${group.id}`}
-      class="flex flex-row gap-2 items-center"
-    >
-      <Icon icon="wpf:group" {color} />
+  <span id={`badge-group-${group.id}`}>
+    <Chip icon="wpf:group" iconColor={color} color="#ffffcc">
       {group.name}
-    </span></Badge
-  >
+    </Chip>
+  </span>
   <Tooltip type={"dark"} triggeredBy={`#badge-group-${group.id}`}
     >Roles: {roles.length} | Members: {roles.reduce(
       (acc, r) => acc + r.members.length,

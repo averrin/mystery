@@ -1,20 +1,19 @@
 <script lang="ts">
-  import { Badge } from "flowbite-svelte";
   import { createEventDispatcher } from "svelte";
-  import { Tooltip, Button } from "flowbite-svelte";
-  import Icon from "@iconify/svelte";
+  import Chip from "./Chip.svelte";
   import Entity from "./Entity.svelte";
   export let property;
 
-  let color = "green";
+  // let color = "#99bbaa";
+  let color = "#999";
   let entity = false;
   if (property.name == "suspect In Murder Of") {
-    color = "red";
+    color = "#eeaaaa";
     entity = true;
   }
 
   if (property.name == "wealth" || property.name == "reputation") {
-    color = "blue";
+    color = "#99aaee";
   }
 
   let dispatch = createEventDispatcher();
@@ -27,22 +26,13 @@
   }
 </script>
 
-<span
-  id={`badge-property-${property.name}`}
-  on:click={(e) => click(e, property)}
-  class="cursor-pointer"
->
-  <Badge border large={true} {color}>
-    <span class="flex flex-row gap-1 items-center">
-      <Icon icon="mdi:tag" />
-      <b>{cap(property.name)}:</b>
-      {#if entity}
-        <Entity id={property.n} />
-      {:else if property.s != ""}
-        {cap(property.s)}
-      {:else}
-        {property.n.toPrecision(2)}
-      {/if}
-    </span>
-  </Badge>
-</span>
+<Chip icon="mdi-tag" {color}>
+  <b>{cap(property.name)}:</b>
+  {#if entity}
+    <Entity id={property.n} />
+  {:else if property.s != ""}
+    {cap(property.s)}
+  {:else}
+    {property.n.toPrecision(2)}
+  {/if}
+</Chip>
