@@ -2,6 +2,7 @@
 #include "dates_spec.hpp"
 #include "names_spec.hpp"
 #include <fmt/core.h>
+#include <functional>
 
 struct PersonSpec {
   boolSpec male;
@@ -20,8 +21,11 @@ struct PersonSpec {
   stringSpec occupation_role;
   stringSpec hasTag;
 
+  std::function<bool(std::shared_ptr<Person>)> matcher;
+
   // TODO: name match
   bool match(std::shared_ptr<Person> mv) {
+    if (this->matcher) return this->matcher(mv);
     auto res = this->male.match(mv->male) && this->age.match(mv->age) &&
                this->dead.match(mv->dead) && this->local.match(mv->local) &&
                this->occupation.match(mv->occupation.title != "");

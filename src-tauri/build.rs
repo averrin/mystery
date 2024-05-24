@@ -7,6 +7,10 @@ fn main() {
     // println!("cargo:rustc-link-lib=SQLiteCpp");
     // println!("cargo:rustc-flags=-lnoise");
     println!("cargo:rustc-link-lib=fmt");
+    // println!("cargo:rustc-link-search=/home/averrin/.extism/release/v0.5.0/libextism.so");
+    println!("cargo:rustc-link-search=/usr/local/lib/");
+    println!("cargo:rustc-link-lib=extism");
+    println!("cargo:rerun-if-changed=mystery/extism/cpp");
     println!("cargo:rerun-if-changed=mystery/include/facade.hpp");
     println!("cargo:rerun-if-changed=mystery/include/randomizer.hpp");
     println!("cargo:rerun-if-changed=mystery/include/generator.hpp");
@@ -33,6 +37,9 @@ fn main() {
         ])
         .include("mystery/include")
         .include("mystery/include/fmt/include")
+        .include("mystery/extism/cpp")
+        // .include("mystery/extism/runtime")
+        .include("/usr/local/include")
         .flag("-w")
         .flag("-std=c++2b")
         .flag("-fno-permissive")
